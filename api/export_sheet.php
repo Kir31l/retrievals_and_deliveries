@@ -210,31 +210,31 @@ function xlsx_from_sheets(array $sheets): string {
     $styles_xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         . '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
         . '<fonts>'
-        .   '<font><sz val="11"/><name val="Calibri"/></font>'              // 0 normal
-        .   '<font><b/><sz val="12"/><name val="Calibri"/></font>'          // 1 bold header
-        .   '<font><b/><sz val="11"/><name val="Calibri"/></font>'          // 2 bold normal
+        .   '<font><sz val="11"/><name val="Calibri"/></font>'                                                          // 0 normal
+        .   '<font><b/><sz val="12"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'                              // 1 bold header (white text)
+        .   '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'                              // 2 bold col header (white text)
         . '</fonts>'
         . '<fills>'
         .   '<fill><patternFill patternType="none"/></fill>'
         .   '<fill><patternFill patternType="gray125"/></fill>'
-        .   '<fill><patternFill patternType="solid"><fgColor rgb="FF1A2D5A"/></patternFill></fill>' // 2 navy
-        .   '<fill><patternFill patternType="solid"><fgColor rgb="FF172850"/></patternFill></fill>' // 3 mid navy
+        .   '<fill><patternFill patternType="solid"><fgColor rgb="FFE8621A"/></patternFill></fill>' // 2 orange
+        .   '<fill><patternFill patternType="solid"><fgColor rgb="FF4BB8E8"/></patternFill></fill>' // 3 light blue
         . '</fills>'
         . '<borders>'
         .   '<border><left/><right/><top/><bottom/><diagonal/></border>'    // 0 none
         .   '<border>'
-        .     '<left style="thin"><color rgb="FF264070"/></left>'
-        .     '<right style="thin"><color rgb="FF264070"/></right>'
-        .     '<top style="thin"><color rgb="FF264070"/></top>'
-        .     '<bottom style="thin"><color rgb="FF264070"/></bottom>'
+        .     '<left style="thin"><color rgb="FFCCCCCC"/></left>'
+        .     '<right style="thin"><color rgb="FFCCCCCC"/></right>'
+        .     '<top style="thin"><color rgb="FFCCCCCC"/></top>'
+        .     '<bottom style="thin"><color rgb="FFCCCCCC"/></bottom>'
         .     '<diagonal/>'
-        .   '</border>'                                                      // 1 thin blue
+        .   '</border>'                                                      // 1 thin light grey
         . '</borders>'
         . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
         . '<cellXfs>'
         .   '<xf numFmtId="0"  fontId="0" fillId="0" borderId="0" xfId="0"/>'                          // 0 default
-        .   '<xf numFmtId="0"  fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center"/></xf>' // 1 title
-        .   '<xf numFmtId="0"  fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>'                                    // 2 col header
+        .   '<xf numFmtId="0"  fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center"/></xf>' // 1 title (orange bg, white bold)
+        .   '<xf numFmtId="0"  fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>'                                    // 2 col header (light blue bg, white bold)
         .   '<xf numFmtId="0"  fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>'          // 3 data cell
         .   '<xf numFmtId="2"  fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>'          // 4 number cell
         .   '<xf numFmtId="0"  fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'            // 5 bold label

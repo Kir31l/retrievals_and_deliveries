@@ -486,12 +486,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px;
-    background: var(--surface2);
+    background: linear-gradient(90deg, rgba(232,98,26,0.08) 0%, rgba(75,184,232,0.08) 100%);
     cursor: pointer;
     user-select: none;
     border-top: 2px solid var(--border);
+    border-left: 3px solid var(--accent);
   }
-  .sub-sheet-header:hover { background: var(--surface3); }
+  .sub-sheet-header:hover { background: linear-gradient(90deg, rgba(232,98,26,0.14) 0%, rgba(75,184,232,0.14) 100%); }
 
   .sheet-chev {
     color: var(--text-dim);
@@ -517,8 +518,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
-    background: var(--surface);
+    background: var(--surface2);
     border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
     flex-wrap: wrap;
     gap: 8px;
   }
@@ -532,13 +534,13 @@
     font-size: 9px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: var(--accent2);
   }
 
   .sheet-total-value {
     font-family: var(--font-mono);
     font-size: 13px;
-    color: var(--text-bright);
+    color: var(--text);
   }
   .sheet-total-value.accent2 { color: var(--accent2); }
 
@@ -551,19 +553,19 @@
     min-width: 780px;
   }
 
-  .sheet-table thead tr { background: var(--surface3); }
+  .sheet-table thead tr { background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%); }
 
   .sheet-table th {
     font-family: var(--font-display);
     font-size: 10px;
     letter-spacing: 1.2px;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: #fff;
     padding: 8px 10px;
     text-align: left;
     white-space: nowrap;
-    border-bottom: 2px solid var(--border);
-    border-right: 1px solid var(--border);
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+    border-right: 1px solid rgba(255,255,255,0.15);
   }
 
   .sheet-table td {
@@ -575,8 +577,8 @@
   .sheet-table td:last-child,
   .sheet-table th:last-child { border-right: none; }
 
-  .sheet-table tr:hover td { background: rgba(255,255,255,0.02); }
-  .sheet-table tr.row-dirty td { background: rgba(245,166,35,0.04); }
+  .sheet-table tr:hover td { background: rgba(75,184,232,0.04); }
+  .sheet-table tr.row-dirty td { background: rgba(232,98,26,0.06); }
 
   .sheet-cell {
     width: 100%;
@@ -588,7 +590,7 @@
     font-size: 12px;
     outline: none;
   }
-  .sheet-cell:focus { background: rgba(245,166,35,0.07); color: var(--text-bright); }
+  .sheet-cell:focus { background: rgba(75,184,232,0.08); color: var(--text-bright); border-bottom: 1px solid var(--accent2); }
   .sheet-cell.num { font-family: var(--font-mono); text-align: right; width: 80px; }
 
   .sheet-static {
@@ -1770,7 +1772,6 @@ async function showBudgetDetail(budgetId) {
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <a href="${API.export_sheet}?budget_id=${budgetId}" class="btn btn-delivery" download style="font-size:13px;">📊 Export Sheet</a>
           <a href="${API.export}?budget_id=${budgetId}" class="btn btn-primary" download>⬇ Export ZIP</a>
         </div>
       </div>
@@ -2121,11 +2122,11 @@ function totalsHtml(t) {
   return `
     <div class="sheet-total-item">
       <span class="sheet-total-label">Service Fees</span>
-      <span class="sheet-total-value">${fmt(t.fee)}</span>
+      <span class="sheet-total-value" style="color:var(--accent);">${fmt(t.fee)}</span>
     </div>
     <div class="sheet-total-item">
       <span class="sheet-total-label">Tolls</span>
-      <span class="sheet-total-value">${fmt(t.toll)}</span>
+      <span class="sheet-total-value" style="color:var(--accent2);">${fmt(t.toll)}</span>
     </div>
     <div class="sheet-total-item">
       <span class="sheet-total-label">Total Expenses</span>
@@ -2133,7 +2134,7 @@ function totalsHtml(t) {
     </div>
     <div class="sheet-total-item">
       <span class="sheet-total-label">Entries</span>
-      <span class="sheet-total-value">${t.count}</span>
+      <span class="sheet-total-value" style="color:var(--text);">${t.count}</span>
     </div>`;
 }
 
