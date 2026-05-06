@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EW BPO — Delivery Management</title>
+<link rel="icon" typle="image/webp" href="logo.webp">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* MCI EW BPO Brand Palette */
+    --bg:           #0d1529;
+    --surface:      #122044;
+    --surface2:     #172850;
+    --surface3:     #1e3262;
+    --border:       #264070;
+    --accent:       #e8621a;   /* MCI orange */
+    --accent2:      #4bb8e8;   /* EW sky blue */
+    --delivery:     #4bb8e8;   /* sky blue for delivery */
+    --retrieval:    #e8621a;   /* orange for retrieval */
+    --text:         #c8d8f0;
+    --text-dim:     #6a85b0;
+    --text-bright:  #f0f6ff;
+    --success:      #4bb8e8;
+    --danger:       #e8621a;
+    --silver:       #a8bcd4;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body:    'Barlow', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo span { color: var(--accent); }
+
+  .date-display {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Nav ── */
+  .main-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-tab {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    top: 1px;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active[data-tab="delivery"]  { color: var(--delivery);  border-bottom-color: var(--delivery); }
+  .nav-tab.active[data-tab="retrieval"] { color: var(--retrieval); border-bottom-color: var(--retrieval); }
+  .nav-tab.active[data-tab="history"]   { color: var(--accent);    border-bottom-color: var(--accent); }
+
+  .tab-badge {
+    display: inline-block;
+    background: var(--surface3);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── Layout ── */
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Control Bar ── */
+  .control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .dot-delivery  { background: var(--delivery);  box-shadow: 0 0 8px var(--delivery); }
+  .dot-retrieval { background: var(--retrieval); box-shadow: 0 0 8px var(--retrieval); }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary  { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #ffb733; transform: translateY(-1px); }
+
+  .btn-delivery { background: var(--delivery); color: #000; }
+  .btn-delivery:hover { filter: brightness(1.1); }
+
+  .btn-retrieval { background: var(--retrieval); color: #fff; }
+  .btn-retrieval:hover { filter: brightness(1.1); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+
+  .btn-submit {
+    background: linear-gradient(135deg, var(--accent), #e8a000);
+    color: #000;
+    font-size: 16px;
+    padding: 12px 32px;
+    border-radius: 6px;
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,166,35,0.4); }
+
+  /* ── Inputs ── */
+  input[type="number"],
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 7px 10px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+  /* ── Budget Bar ── */
+  .budget-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item { display: flex; flex-direction: column; gap: 2px; }
+
+  .stat-label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--accent2);
+  }
+  .stat-value.dim      { color: var(--text-dim); }
+  .stat-value.positive { color: var(--success); }
+  .stat-value.negative { color: var(--danger); }
+  .stat-value.accent   { color: var(--accent); }
+
+  .no-budget-warning {
+    display: none;
+    background: rgba(224,92,122,0.1);
+    border: 1px solid var(--retrieval);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    color: var(--retrieval);
+    font-family: var(--font-display);
+    letter-spacing: 1px;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* ── Main Table ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead { background: var(--surface2); border-bottom: 2px solid var(--border); }
+
+  th {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  td { padding: 6px 8px; vertical-align: middle; }
+  td input, td select { width: 100%; min-width: 0; }
+  td input[type="number"] { width: 90px; }
+
+  .row-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    width: 28px;
+  }
+
+  /* ── Photo cell — multi-photo strip ── */
+  .photo-strip {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-wrap: nowrap;
+    min-width: 38px;
+  }
+  .photo-thumb {
+    width: 30px; height: 30px;
+    border-radius: 3px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .photo-thumb:hover { border-color: var(--accent); }
+  .photo-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 3px;
+    border: 1px dashed var(--border);
+    cursor: pointer;
+    font-size: 14px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    flex-shrink: 0;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .photo-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .photo-add-btn input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .photo-del-btn {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 13px; height: 13px;
+    background: var(--danger, #e45858);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    border: none;
+  }
+  .photo-thumb-wrap {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* ── Submit section ── */
+  .submit-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 8px 0 20px;
+  }
+
+  /* ── History ── */
+  .history-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .panel-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .panel-box-header {
+    background: var(--surface2);
+    padding: 12px 16px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .history-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item:hover { background: var(--surface2); }
+  .history-item.selected { background: var(--surface3); border-left: 3px solid var(--accent); }
+
+  .history-id {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .history-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .history-amount {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--accent2);
+    text-align: right;
+  }
+
+  .active-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* ── Detail panel ── */
+  .detail-header {
+    background: var(--surface2);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .detail-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-stat {
+    padding: 16px 20px;
+    border-right: 1px solid var(--border);
+  }
+  .detail-stat:last-child { border-right: none; }
+  .detail-stat .stat-label { margin-bottom: 4px; }
+  .detail-stat .stat-value { font-size: 18px; }
+
+  /* ── Submission sheets ── */
+  .sub-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    cursor: pointer;
+    user-select: none;
+    border-top: 2px solid var(--border);
+  }
+  .sub-sheet-header:hover { background: var(--surface3); }
+
+  .sheet-chev {
+    color: var(--text-dim);
+    font-size: 11px;
+    transition: transform 0.2s;
+  }
+
+  .type-chip {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .chip-delivery  { background: rgba(61,214,172,0.15); color: var(--delivery); }
+  .chip-retrieval { background: rgba(224,92,122,0.15); color: var(--retrieval); }
+
+  .sheet-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sheet-totals { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+
+  .sheet-total-item { display: flex; flex-direction: column; gap: 1px; }
+
+  .sheet-total-label {
+    font-family: var(--font-display);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .sheet-total-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-bright);
+  }
+  .sheet-total-value.accent2 { color: var(--accent2); }
+
+  .sheet-scroll { overflow-x: auto; }
+
+  .sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 780px;
+  }
+
+  .sheet-table thead tr { background: var(--surface3); }
+
+  .sheet-table th {
+    font-family: var(--font-display);
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  .sheet-table td {
+    padding: 0;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .sheet-table td:last-child,
+  .sheet-table th:last-child { border-right: none; }
+
+  .sheet-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .sheet-table tr.row-dirty td { background: rgba(245,166,35,0.04); }
+
+  .sheet-cell {
+    width: 100%;
+    padding: 7px 10px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 12px;
+    outline: none;
+  }
+  .sheet-cell:focus { background: rgba(245,166,35,0.07); color: var(--text-bright); }
+  .sheet-cell.num { font-family: var(--font-mono); text-align: right; width: 80px; }
+
+  .sheet-static {
+    padding: 7px 10px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .sheet-static.bright  { color: var(--text); }
+  .sheet-static.accent2 { color: var(--accent2); text-align: right; }
+  .sheet-static.num     { text-align: right; }
+
+  .edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    transition: all 0.15s;
+  }
+  .edit-btn.active {
+    background: rgba(245,166,35,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .save-status {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+  .save-status.saving { color: var(--accent); }
+  .save-status.saved  { color: var(--success); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    gap: 12px;
+  }
+  .empty-icon { font-size: 48px; opacity: 0.3; }
+  .empty-text {
+    font-family: var(--font-display);
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: min(500px, 95vw);
+    overflow: hidden;
+    animation: fadeUp 0.2s ease;
+  }
+
+  @keyframes fadeUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  .modal-header {
+    background: var(--surface2);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-bright);
+  }
+
+  .modal-body   { padding: 24px; }
+  .modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .depletion-warn {
+    grid-column: 1 / -1;
+    background: rgba(224,92,122,0.1);
+    border: 1px solid var(--danger);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--danger);
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  /* ── Toast ── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 260px;
+    animation: slideIn 0.3s ease;
+  }
+  .toast.success { border-left-color: var(--success); }
+  .toast.error   { border-left-color: var(--danger); }
+
+  @keyframes slideIn {
+    from { transform: translateX(120px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .history-grid { grid-template-columns: 1fr; }
+    .detail-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px) {
+    header { padding: 0 12px; }
+    main   { padding: 12px; }
+    .form-row { grid-template-columns: 1fr; }
+    .budget-bar { gap: 12px; }
+    .header-center { display: none; }
+  }
+
+  /* ── Brand Enhancements ── */
+  body {
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(75,184,232,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 30% at 100% 100%, rgba(232,98,26,0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Branded header */
+  header {
+    background: linear-gradient(90deg, #0a1a3a 0%, #112248 50%, #0e1e40 100%);
+    border-bottom: 2px solid transparent;
+    border-image: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%) 1;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+    height: 66px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-text {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .logo-mci  { color: var(--accent);  font-size: 13px; letter-spacing: 3px; align-self: flex-start; margin-top: -2px; }
+  .logo-ew   { color: #fff;           font-size: 22px; }
+  .logo-w    { color: var(--accent2); }
+  .logo-bpo  { color: var(--silver);  font-size: 14px; letter-spacing: 3px; }
+
+  .header-center {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Branded nav */
+  .main-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 8px rgba(0,0,0,0.3);
+  }
+
+  .nav-tab.active[data-tab="delivery"]  { color: var(--accent2);  border-bottom-color: var(--accent2); }
+  .nav-tab.active[data-tab="retrieval"] { color: var(--accent);   border-bottom-color: var(--accent); }
+  .nav-tab.active[data-tab="history"]   { color: var(--silver);   border-bottom-color: var(--silver); }
+
+  /* Branded stat values */
+  .stat-value { color: var(--accent2); }
+  .stat-value.accent { color: var(--accent); }
+
+  /* Branded budget bar */
+  .budget-bar {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent2);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  /* Branded table header */
+  thead { background: linear-gradient(90deg, var(--surface2), var(--surface3)); }
+
+  th { color: var(--accent2); }
+
+  /* Branded buttons */
+  .btn-delivery  { background: var(--accent2); color: #041a30; }
+  .btn-retrieval { background: var(--accent); color: #fff; }
+
+  .btn-submit {
+    background: linear-gradient(135deg, var(--accent), #c44f10);
+    box-shadow: 0 4px 12px rgba(232,98,26,0.3);
+  }
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(232,98,26,0.5);
+  }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #f07030; }
+
+  /* Branded dots */
+  .dot-delivery  { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .dot-retrieval { background: var(--accent);  box-shadow: 0 0 8px var(--accent); }
+
+  /* Active dot */
+  .active-dot { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+
+  /* Branded chips */
+  .chip-delivery  { background: rgba(75,184,232,0.15); color: var(--accent2); }
+  .chip-retrieval { background: rgba(232,98,26,0.15);  color: var(--accent); }
+
+  /* Branded history selected */
+  .history-item.selected { background: rgba(75,184,232,0.06); border-left: 3px solid var(--accent2); }
+
+  /* Input focus brand color */
+  input:focus, select:focus, textarea:focus { border-color: var(--accent2); box-shadow: 0 0 0 2px rgba(75,184,232,0.15); }
+
+  /* Branded toast */
+  .toast { background: var(--surface2); border-color: var(--border); border-left-color: var(--accent2); }
+  .toast.success { border-left-color: var(--accent2); }
+  .toast.error   { border-left-color: var(--accent); }
+
+  /* Branded scrollbar */
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+  /* Panel box header */
+  .panel-box-header { color: var(--accent2); border-bottom-color: var(--border); }
+
+  /* No budget warning */
+  .no-budget-warning {
+    background: rgba(232,98,26,0.08);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Depletion warning */
+  .depletion-warn { border-color: var(--accent); color: var(--accent); background: rgba(232,98,26,0.08); }
+
+  /* Sheet totals accent */
+  .sheet-total-value.accent2 { color: var(--accent2); }
+
+  /* Edit button active */
+  .edit-btn.active { background: rgba(75,184,232,0.12); border-color: var(--accent2); color: var(--accent2); }
+  .save-status.saving { color: var(--accent2); }
+  .save-status.saved  { color: var(--accent2); }
+
+  /* Section title color */
+  .section-title { color: var(--text-bright); }
+
+  /* modal title */
+  .modal-title { color: var(--accent2); }
+  .modal-header { border-bottom-color: var(--border); }
+
+  /* Footer accent on modal */
+  .modal-footer { border-top: 1px solid var(--border); }
+
+  /* Date display */
+  .date-display {
+    background: rgba(75,184,232,0.1);
+    border-color: rgba(75,184,232,0.25);
+    color: var(--accent2);
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">
+    <img src="logo.webp" alt="MCI EW BPO Logo" style="height:44px;width:44px;border-radius:8px;object-fit:cover;">
+    <div class="logo-text">
+      <span class="logo-mci">MCI</span>
+      <span class="logo-ew">EAST<span class="logo-w">WEST</span></span>
+      <span class="logo-bpo">BPO</span>
+    </div>
+  </div>
+  <div class="header-center">Delivery Management System</div>
+  <div class="date-display" id="currentDate">—</div>
+</header>
+
+<!-- ── Nav ── -->
+<nav class="main-nav">
+  <button class="nav-tab active" data-tab="delivery"  onclick="switchTab('delivery')">
+    🏍 Deliveries <span class="tab-badge" id="badge-delivery">0</span>
+  </button>
+  <button class="nav-tab" data-tab="retrieval" onclick="switchTab('retrieval')">
+    📦 Retrievals <span class="tab-badge" id="badge-retrieval">0</span>
+  </button>
+  <button class="nav-tab" data-tab="history" onclick="switchTab('history')">
+    🗂 History
+  </button>
+  <div style="margin-left:auto;padding-right:4px;display:flex;align-items:center;gap:8px;">
+    <span style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;">MCI EW BPO</span>
+    <img src="logo.webp" style="height:28px;width:28px;border-radius:5px;opacity:0.85;">
+  </div>
+</nav>
+
+<main>
+
+  <!-- ══ DELIVERY TAB ══ -->
+  <div class="tab-panel active" id="panel-delivery">
+    <div class="control-bar">
+      <div class="section-title" style="color:var(--accent2);">
+        <span class="dot dot-delivery"></span> Delivery Entries
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="date" id="delivery-date" style="font-family:var(--font-mono);">
+        <button class="btn btn-delivery" onclick="addRow('delivery')">+ Add Row</button>
+      </div>
+    </div>
+
+    <div class="budget-bar" id="budget-bar-delivery">
+      <div class="stat-item">
+        <span class="stat-label">Active Budget</span>
+        <div class="stat-value accent" id="delivery-budget-remaining">—</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Initial</span>
+        <div class="stat-value dim" id="delivery-budget-initial">—</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Tolls (this batch)</span>
+        <div class="stat-value" id="delivery-total-toll">₱0.00</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Fees (this batch)</span>
+        <div class="stat-value" id="delivery-total-fee">₱0.00</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Total Expenses</span>
+        <div class="stat-value negative" id="delivery-total-expenses">₱0.00</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Budget After Submit</span>
+        <div class="stat-value" id="delivery-after">—</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-ghost" style="font-size:12px;" onclick="openBudgetModal()">＋ New Budget</button>
+        <button class="btn btn-danger" onclick="closeBudget()">✕ Close Budget</button>
+      </div>
+    </div>
+
+    <div class="no-budget-warning" id="no-budget-delivery">
+      ⚠ NO ACTIVE BUDGET —
+      <button class="btn" style="background:var(--retrieval);color:#fff;font-size:12px;padding:5px 12px;" onclick="openBudgetModal()">Open a Budget First</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px;">#</th>
+            <th>Service</th>
+            <th>Driver's Name</th>
+            <th>Vehicle</th>
+            <th style="width:130px;">Date</th>
+            <th>Location</th>
+            <th>Fee (₱)</th>
+            <th>Toll Entry (₱)</th>
+            <th>Toll Back (₱)</th>
+            <th>Photo</th>
+            <th style="width:54px;">Del</th>
+          </tr>
+        </thead>
+        <tbody id="delivery-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="submit-section">
+      <button class="btn btn-ghost" onclick="clearRows('delivery')">Clear All</button>
+      <button class="btn btn-submit" onclick="openSubmitModal('delivery')">⚡ Submit Deliveries</button>
+    </div>
+  </div>
+
+  <!-- ══ RETRIEVAL TAB ══ -->
+  <div class="tab-panel" id="panel-retrieval">
+    <div class="control-bar">
+      <div class="section-title" style="color:var(--accent);">
+        <span class="dot dot-retrieval"></span> Retrieval Entries
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="date" id="retrieval-date" style="font-family:var(--font-mono);">
+        <button class="btn btn-retrieval" onclick="addRow('retrieval')">+ Add Row</button>
+      </div>
+    </div>
+
+    <div class="budget-bar" id="budget-bar-retrieval">
+      <div class="stat-item">
+        <span class="stat-label">Active Budget</span>
+        <div class="stat-value accent" id="retrieval-budget-remaining">—</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Initial</span>
+        <div class="stat-value dim" id="retrieval-budget-initial">—</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Tolls (this batch)</span>
+        <div class="stat-value" id="retrieval-total-toll">₱0.00</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Fees (this batch)</span>
+        <div class="stat-value" id="retrieval-total-fee">₱0.00</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Total Expenses</span>
+        <div class="stat-value negative" id="retrieval-total-expenses">₱0.00</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Budget After Submit</span>
+        <div class="stat-value" id="retrieval-after">—</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-ghost" style="font-size:12px;" onclick="openBudgetModal()">＋ New Budget</button>
+        <button class="btn btn-danger" onclick="closeBudget()">✕ Close Budget</button>
+      </div>
+    </div>
+
+    <div class="no-budget-warning" id="no-budget-retrieval">
+      ⚠ NO ACTIVE BUDGET —
+      <button class="btn" style="background:var(--retrieval);color:#fff;font-size:12px;padding:5px 12px;" onclick="openBudgetModal()">Open a Budget First</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px;">#</th>
+            <th>Service</th>
+            <th>Driver's Name</th>
+            <th>Vehicle</th>
+            <th style="width:130px;">Date</th>
+            <th>Location</th>
+            <th>Fee (₱)</th>
+            <th>Toll Entry (₱)</th>
+            <th>Toll Back (₱)</th>
+            <th>Photo</th>
+            <th style="width:54px;">Del</th>
+          </tr>
+        </thead>
+        <tbody id="retrieval-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="submit-section">
+      <button class="btn btn-ghost" onclick="clearRows('retrieval')">Clear All</button>
+      <button class="btn btn-submit" onclick="openSubmitModal('retrieval')">⚡ Submit Retrievals</button>
+    </div>
+  </div>
+
+  <!-- ══ HISTORY TAB ══ -->
+  <div class="tab-panel" id="panel-history">
+    <div class="control-bar">
+      <div class="section-title">📋 Budget History</div>
+      <button class="btn btn-ghost" onclick="loadHistory()">↺ Refresh</button>
+    </div>
+
+    <div class="history-grid">
+      <div class="panel-box">
+        <div class="panel-box-header">Budgets</div>
+        <div id="history-list">
+          <div class="empty-state">
+            <div class="empty-icon">🗂</div>
+            <div class="empty-text">No Budgets Yet</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-box" id="history-detail">
+        <div class="empty-state" style="min-height:400px;">
+          <div class="empty-icon">👈</div>
+          <div class="empty-text">Select a Budget</div>
+          <div style="color:var(--text-dim);font-size:13px;margin-top:4px;">Click a budget to view its submissions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══ SUBMIT MODAL ══ -->
+<div class="modal-overlay" id="submit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Confirm Submission</span>
+      <button class="btn btn-ghost" style="padding:4px 8px;" onclick="closeSubmitModal()">✕</button>
+    </div>
+    <div class="modal-body" id="submit-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSubmitModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-btn" onclick="confirmSubmit()">⚡ Confirm & Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BUDGET MODAL ══ -->
+<div class="modal-overlay" id="budget-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Open New Budget</span>
+      <button class="btn btn-ghost" style="padding:4px 8px;" onclick="closeBudgetModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px;">
+        Opening a new budget will automatically close the current one (if any).
+        All future submissions will deduct from this budget until it runs out or you close it manually.
+      </p>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Budget Amount (₱)</label>
+          <input type="number" id="budget-amount" placeholder="e.g. 5000.00" step="0.01" min="1"
+            style="font-family:var(--font-mono);font-size:18px;width:100%;">
+        </div>
+        <div class="form-group full">
+          <label>Notes (optional)</label>
+          <input type="text" id="budget-notes" placeholder="e.g. Week 3 operations" style="width:100%;">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeBudgetModal()">Cancel</button>
+      <button class="btn btn-primary" id="open-budget-btn" onclick="confirmOpenBudget()">✓ Open Budget</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- ── Footer ── -->
+<footer style="margin-top:40px;padding:20px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <img src="logo.webp" style="height:28px;width:28px;border-radius:6px;opacity:0.7;">
+    <span style="font-family:var(--font-display);font-size:12px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;">MCI EW BPO — Delivery Management System</span>
+  </div>
+  <span style="font-family:var(--font-mono);font-size:11px;color:var(--border);">v2.0</span>
+</footer>
+
+<script>
+'use strict';
+
+// ── API config ─────────────────────────────────────────────────────────────
+const API = {
+  submit:         'api/submit.php',
+  submissions:    'api/submissions.php',
+  update_entry:   'api/update_entry.php',
+  budget:         'api/budget.php',
+  photo:          'api/photo.php',
+  export:         'api/export.php',
+  export_sheet:   'api/export_sheet.php',
+};
+
+// ── App state ──────────────────────────────────────────────────────────────
+let rowCounters   = { delivery: 0, retrieval: 0 };
+let photoData     = {};   // `${type}-${rowId}` → Array of base64 data-URIs
+let activeBudget  = null; // { id, initial_amount, remaining, ... }
+let pendingSubmit = null; // staging for confirm modal
+
+// History-tab edit state
+const sheetCache   = {};  // sid → [entry, ...]
+const sheetEditing = {};  // sid → bool
+const stagedPhotos = {};  // `${sid}-${eid}` → Array of base64 data-URIs
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+const parseNum = v => parseFloat(v) || 0;
+const fmt = n => '₱' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const esc = s => String(s || '')
+  .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+  .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el   = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+  el.innerHTML = `<span>${icon}</span> ${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── apiFetch — throws on failure with server's error message ───────────────
+async function apiFetch(url, opts = {}) {
+  const res  = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const text = await res.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    // PHP sent non-JSON — likely a warning/notice before the JSON output
+    console.error('Non-JSON from ' + url + ':', text);
+    throw new Error('Server error: ' + (text.slice(0, 120) || 'empty response'));
+  }
+  if (!json.success) throw new Error(json.error || 'HTTP ' + res.status);
+  return Object.prototype.hasOwnProperty.call(json, 'data') ? json.data : null;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const now   = new Date();
+  const today = now.toISOString().slice(0, 10);
+
+  document.getElementById('currentDate').textContent =
+    now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  document.getElementById('delivery-date').value  = today;
+  document.getElementById('retrieval-date').value = today;
+
+  await loadActiveBudget();
+  addRow('delivery');
+  loadHistory();
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
+  if (tab === 'history') loadHistory();
+}
+
+// ── Row management ─────────────────────────────────────────────────────────
+function addRow(type) {
+  const id    = ++rowCounters[type];
+  const tbody = document.getElementById(type + '-tbody');
+  const tr    = document.createElement('tr');
+  tr.id            = `${type}-row-${id}`;
+  tr.dataset.rowId = id;
+
+  tr.innerHTML = `
+    <td><div class="row-num">${id}</div></td>
+    <td><input type="text"   placeholder="e.g. GrabExpress" style="min-width:110px;" oninput="recalc('${type}')"></td>
+    <td><input type="text"   placeholder="Driver's name"    style="min-width:130px;" oninput="recalc('${type}')"></td>
+    <td>
+      <select style="min-width:90px;" onchange="recalc('${type}')">
+        <option value="">— Select —</option>
+        <option>Motorcycle</option>
+        <option>Car</option>
+        <option>Van</option>
+        <option>Truck</option>
+        <option>Bicycle</option>
+        <option>Other</option>
+      </select>
+    </td>
+    <td><input type="date" value="${document.getElementById(type+'-date').value}" style="min-width:120px;font-family:var(--font-mono);"></td>
+    <td><input type="text"   placeholder="Location" style="min-width:130px;" oninput="recalc('${type}')"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" min="0" oninput="recalc('${type}')"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" min="0" oninput="recalc('${type}')"></td>
+    <td><input type="number" placeholder="0.00" step="0.01" min="0" oninput="recalc('${type}')"></td>
+    <td>
+      <div class="photo-strip" id="photo-strip-${type}-${id}">
+        <label class="photo-add-btn" title="Add photo">
+          📷
+          <input type="file" accept="image/*" multiple onchange="handlePhotos('${type}',${id},this)">
+        </label>
+      </div>
+    </td>
+    <td><button class="btn btn-danger" onclick="removeRow('${type}',${id})">✕</button></td>
+  `;
+
+  tbody.appendChild(tr);
+  tr.querySelector('input').focus();
+  updateBadge(type);
+}
+
+function removeRow(type, id) {
+  document.getElementById(`${type}-row-${id}`)?.remove();
+  delete photoData[`${type}-${id}`];
+  updateBadge(type);
+  recalc(type);
+  renumberRows(type);
+}
+
+function renumberRows(type) {
+  document.querySelectorAll(`#${type}-tbody tr`).forEach((tr, i) => {
+    const el = tr.querySelector('.row-num');
+    if (el) el.textContent = i + 1;
+  });
+}
+
+function clearRows(type) {
+  if (!confirm(`Clear all ${type} rows?`)) return;
+  document.getElementById(type + '-tbody').innerHTML = '';
+  Object.keys(photoData).filter(k => k.startsWith(type + '-')).forEach(k => delete photoData[k]);
+  rowCounters[type] = 0;
+  updateBadge(type);
+  recalc(type);
+  addRow(type);
+}
+
+function updateBadge(type) {
+  document.getElementById('badge-' + type).textContent =
+    document.querySelectorAll(`#${type}-tbody tr`).length;
+}
+
+// ── Photo (multi-photo strip) ────────────────────────────────────────────
+function handlePhotos(type, id, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const key = `${type}-${id}`;
+  if (!photoData[key]) photoData[key] = [];
+
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const idx = photoData[key].length;
+      photoData[key].push(e.target.result);
+      renderPhotoStrip(type, id);
+      loaded++;
+      if (loaded === files.length)
+        toast(`${files.length} photo(s) added to row ${id}`, 'success');
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = ''; // allow re-selecting same files
+}
+
+function renderPhotoStrip(type, id) {
+  const key   = `${type}-${id}`;
+  const strip = document.getElementById(`photo-strip-${type}-${id}`);
+  if (!strip) return;
+  const photos = photoData[key] || [];
+
+  // Rebuild strip: thumbnails first, then add button
+  strip.innerHTML = '';
+  photos.forEach((src, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-thumb-wrap';
+
+    const img = document.createElement('img');
+    img.src = src;
+    img.className = 'photo-thumb';
+    img.title = `Photo ${idx + 1} — click to view`;
+    img.onclick = () => viewPhoto(src);
+    wrap.appendChild(img);
+
+    const del = document.createElement('button');
+    del.className = 'photo-del-btn';
+    del.textContent = '✕';
+    del.title = 'Remove photo';
+    del.onclick = (ev) => {
+      ev.stopPropagation();
+      photoData[key].splice(idx, 1);
+      if (photoData[key].length === 0) delete photoData[key];
+      renderPhotoStrip(type, id);
+    };
+    wrap.appendChild(del);
+    strip.appendChild(wrap);
+  });
+
+  // Add-more button
+  const lbl = document.createElement('label');
+  lbl.className = 'photo-add-btn';
+  lbl.title = photos.length ? 'Add more photos' : 'Add photo';
+  lbl.innerHTML = `📷<input type="file" accept="image/*" multiple>`;
+  lbl.querySelector('input').onchange = (ev) => handlePhotos(type, id, ev.target);
+  strip.appendChild(lbl);
+}
+
+// ── Calculations ───────────────────────────────────────────────────────────
+function recalc(type) {
+  let totalFee = 0, totalToll = 0;
+  document.querySelectorAll(`#${type}-tbody tr`).forEach(tr => {
+    const nums = tr.querySelectorAll('input[type="number"]');
+    totalFee  += parseNum(nums[0]?.value);
+    totalToll += parseNum(nums[1]?.value) + parseNum(nums[2]?.value);
+  });
+
+  const totalExpenses = totalFee + totalToll;
+
+  document.getElementById(`${type}-total-fee`).textContent       = fmt(totalFee);
+  document.getElementById(`${type}-total-toll`).textContent      = fmt(totalToll);
+  document.getElementById(`${type}-total-expenses`).textContent  = fmt(totalExpenses);
+
+  const afterEl = document.getElementById(`${type}-after`);
+  if (activeBudget) {
+    const after = activeBudget.remaining - totalExpenses;
+    afterEl.textContent = fmt(after);
+    afterEl.className   = 'stat-value ' + (after < 0 ? 'negative' : 'positive');
+  } else {
+    afterEl.textContent = '—';
+    afterEl.className   = 'stat-value';
+  }
+}
+
+// ── Collect rows for submission ────────────────────────────────────────────
+function collectRows(type) {
+  const fallbackDate = document.getElementById(type + '-date').value || new Date().toISOString().slice(0,10);
+  return [...document.querySelectorAll(`#${type}-tbody tr`)].map(tr => {
+    const texts = tr.querySelectorAll('input[type="text"]');
+    const dates = tr.querySelectorAll('input[type="date"]');
+    const sel   = tr.querySelectorAll('select');
+    const nums  = tr.querySelectorAll('input[type="number"]');
+    return {
+      service:    texts[0]?.value.trim() || '',
+      name:       texts[1]?.value.trim() || '',
+      vehicle:    sel[0]?.value          || '',
+      date:       dates[0]?.value        || fallbackDate,
+      loc:        texts[2]?.value.trim() || '',
+      fee:        parseNum(nums[0]?.value),
+      toll_entry: parseNum(nums[1]?.value),
+      toll_back:  parseNum(nums[2]?.value),
+      photos:     photoData[`${type}-${tr.dataset.rowId}`] || [],
+      type,
+    };
+  }).filter(e => e.service || e.name || e.loc || e.fee);
+}
+
+// ── Submit modal ───────────────────────────────────────────────────────────
+function openSubmitModal(type) {
+  if (!activeBudget) {
+    toast('No active budget! Open one first.', 'error');
+    openBudgetModal();
+    return;
+  }
+
+  const entries = collectRows(type);
+  if (!entries.length) { toast('No entries to submit.', 'error'); return; }
+
+  // Use the most common per-row date as the submission date; fallback to tab date
+  const tabDate = document.getElementById(type + '-date').value || new Date().toISOString().slice(0,10);
+  const dateCounts = {};
+  entries.forEach(e => { dateCounts[e.date] = (dateCounts[e.date] || 0) + 1; });
+  const date = Object.entries(dateCounts).sort((a,b) => b[1]-a[1])[0]?.[0] || tabDate;
+
+  let totalFee = 0, totalToll = 0;
+  entries.forEach(e => { totalFee += e.fee; totalToll += e.toll_entry + e.toll_back; });
+  const totalExpenses = totalFee + totalToll;
+  const budgetAfter = activeBudget.remaining - totalExpenses;
+
+  pendingSubmit = { type, date, entries, totalFee, totalToll, totalExpenses, budgetAfter };
+
+  document.getElementById('submit-modal-body').innerHTML = `
+    <div class="summary-grid">
+      <div class="stat-item">
+        <span class="stat-label">Type</span>
+        <span class="type-chip chip-${type}">${type.toUpperCase()}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Entries</span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:var(--text-bright);">${entries.length}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Budget Remaining</span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:var(--accent);">${fmt(activeBudget.remaining)}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Service Fees (Expense)</span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:var(--text-bright);">${fmt(totalFee)}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Tolls (Expense)</span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:var(--text-bright);">${fmt(totalToll)}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Total Expenses</span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:var(--danger);">${fmt(totalExpenses)}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Budget After Submit</span>
+        <span style="font-family:var(--font-mono);font-size:20px;color:${budgetAfter < 0 ? 'var(--danger)' : 'var(--success)'};">${fmt(budgetAfter)}</span>
+      </div>
+      ${budgetAfter <= 0 ? `<div class="depletion-warn">⚠ BUDGET WILL BE DEPLETED — it will automatically close after submission.</div>` : ''}
+    </div>
+    <div style="background:var(--surface2);border-radius:6px;padding:12px;border:1px solid var(--border);">
+      <div class="stat-label" style="margin-bottom:8px;">Entry Summary</div>
+      ${entries.map((e,i) => `
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-dim);">
+          <span>${i+1}. <span style="font-family:var(--font-mono);color:var(--accent2);font-size:11px;">${e.date}</span> · ${esc(e.service)||'—'} · ${esc(e.name)||'—'} · ${esc(e.loc)||'—'}</span>
+          <span style="font-family:var(--font-mono);color:var(--text);">${fmt(e.fee)}</span>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('submit-modal').classList.add('open');
+}
+
+function closeSubmitModal() {
+  document.getElementById('submit-modal').classList.remove('open');
+}
+
+async function confirmSubmit() {
+  if (!pendingSubmit || !activeBudget) return;
+  const { type, date, entries } = pendingSubmit;
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true; btn.textContent = '⏳ Saving…';
+
+  try {
+    const result = await apiFetch(API.submit, {
+      method: 'POST',
+      body: JSON.stringify({ budget_id: activeBudget.id, type, date, entries }),
+    });
+
+    closeSubmitModal();
+    toast(`${entries.length} ${type} entries submitted!`, 'success');
+
+    if (result.budget_depleted) {
+      toast('Budget fully depleted — it has been closed.', 'error');
+      activeBudget = null;
+    } else {
+      activeBudget.remaining = result.budget_after;
+    }
+
+    renderBudgetBars();
+
+    document.getElementById(type + '-tbody').innerHTML = '';
+    rowCounters[type] = 0;
+    Object.keys(photoData).filter(k => k.startsWith(type + '-')).forEach(k => delete photoData[k]);
+    updateBadge(type);
+    recalc(type);
+    addRow(type);
+    pendingSubmit = null;
+
+  } catch (err) {
+    toast('Submit failed: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '⚡ Confirm & Submit';
+  }
+}
+
+// ── Budget ─────────────────────────────────────────────────────────────────
+async function loadActiveBudget() {
+  try {
+    const result = await apiFetch(API.budget);
+    // Server returns null when no active budget (respond_ok(null))
+    // apiFetch now correctly returns null in that case
+    activeBudget = (result && typeof result === 'object' && result.id) ? result : null;
+  } catch {
+    activeBudget = null;
+  }
+  renderBudgetBars();
+}
+
+function renderBudgetBars() {
+  for (const type of ['delivery', 'retrieval']) {
+    const bar     = document.getElementById(`budget-bar-${type}`);
+    const warning = document.getElementById(`no-budget-${type}`);
+
+    if (activeBudget) {
+      bar.style.display     = '';
+      warning.style.display = 'none';
+      document.getElementById(`${type}-budget-remaining`).textContent = fmt(activeBudget.remaining);
+      document.getElementById(`${type}-budget-initial`).textContent   = fmt(activeBudget.initial_amount);
+    } else {
+      bar.style.display     = 'none';
+      warning.style.display = 'flex';
+    }
+    recalc(type);
+  }
+}
+
+function openBudgetModal() {
+  document.getElementById('budget-amount').value = '';
+  document.getElementById('budget-notes').value  = '';
+  document.getElementById('budget-modal').classList.add('open');
+  setTimeout(() => document.getElementById('budget-amount').focus(), 100);
+}
+
+function closeBudgetModal() {
+  document.getElementById('budget-modal').classList.remove('open');
+}
+
+async function confirmOpenBudget() {
+  const amount = parseFloat(document.getElementById('budget-amount').value);
+  const notes  = document.getElementById('budget-notes').value.trim();
+  if (!amount || amount <= 0) { toast('Enter a valid amount.', 'error'); return; }
+
+  const btn = document.getElementById('open-budget-btn');
+  btn.disabled = true; btn.textContent = '⏳ Opening…';
+
+  try {
+    const result = await apiFetch(API.budget, {
+      method: 'POST',
+      body: JSON.stringify({ amount, notes }),
+    });
+    if (!result || !result.id) throw new Error('Invalid response from server.');
+    activeBudget = result;
+    closeBudgetModal();
+    renderBudgetBars();
+    toast(`Budget of ${fmt(amount)} opened!`, 'success');
+    loadHistory();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Open Budget';
+  }
+}
+
+// ── Close budget (uses raw fetch to avoid treating 400 like a network error) ──
+async function closeBudget() {
+  if (!activeBudget) { toast('No active budget to close.', 'error'); return; }
+  if (!confirm(`Close current budget? (${fmt(activeBudget.remaining)} remaining)`)) return;
+
+  try {
+    const res  = await fetch(API.budget + '?close=1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    const json = await res.json().catch(() => ({ success: false, error: 'Invalid server response' }));
+    if (!json.success) { toast(json.error || 'Failed to close budget.', 'error'); return; }
+
+    activeBudget = null;
+    renderBudgetBars();
+    toast('Budget closed.', 'success');
+    loadHistory();
+  } catch (err) {
+    toast('Network error: ' + err.message, 'error');
+  }
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = `<div class="empty-state"><div class="empty-icon" style="font-size:24px;">⏳</div><div class="empty-text">Loading…</div></div>`;
+
+  try {
+    const budgets = await apiFetch(API.budget + '?all=1');
+    const list2 = document.getElementById('history-list');
+    if (!budgets || !Array.isArray(budgets) || !budgets.length) {
+      list2.innerHTML = `<div class="empty-state"><div class="empty-icon">🗂</div><div class="empty-text">No Budgets Yet</div></div>`;
+      return;
+    }
+
+    list2.innerHTML = budgets.map(b => `
+      <div class="history-item" data-bid="${b.id}" onclick="showBudgetDetail(${b.id})">
+        <div>
+          <div class="history-id">
+            ${b.is_active ? '<span class="active-dot"></span>' : ''}
+            Budget #${b.id}
+          </div>
+          <div class="history-meta">
+            ${b.submission_count} submissions · Opened ${b.opened_at.slice(0,10)}
+            ${b.closed_at
+              ? '<br>Closed ' + b.closed_at.slice(0,10)
+              : '<br><span style="color:var(--success);">Active</span>'}
+          </div>
+        </div>
+        <div>
+        <div class="history-amount">${fmt(b.remaining)}</div>
+          <div style="font-size:10px;color:var(--text-dim);text-align:right;">of ${fmt(b.initial_amount)}</div>
+        </div>
+      </div>`).join('');
+
+  } catch (err) {
+    document.getElementById('history-list').innerHTML = `<div class="empty-state"><div class="empty-text" style="color:var(--danger);">Error: ${err.message}</div></div>`;
+  }
+}
+
+async function showBudgetDetail(budgetId) {
+  document.querySelectorAll('.history-item').forEach(el => el.classList.remove('selected'));
+  document.querySelector(`.history-item[data-bid="${budgetId}"]`)?.classList.add('selected');
+
+  const detail = document.getElementById('history-detail');
+  detail.innerHTML = `<div class="empty-state" style="min-height:400px;"></div>`;
+
+  try {
+    const [budgets, submissions] = await Promise.all([
+      apiFetch(API.budget + '?all=1'),
+      apiFetch(`${API.submissions}?budget_id=${budgetId}`),
+    ]);
+
+    const budgetList = Array.isArray(budgets) ? budgets : [];
+    const subList    = Array.isArray(submissions) ? submissions : [];
+
+    const b = budgetList.find(x => x.id === budgetId);
+    if (!b) throw new Error('Budget not found');
+
+    const entriesBySubId = {};
+    await Promise.all(subList.map(async s => {
+      const full = await apiFetch(`${API.submissions}?id=${s.id}`);
+      entriesBySubId[s.id] = (full && Array.isArray(full.entries)) ? full.entries : [];
+    }));
+
+    const totalSpent = subList.reduce((a, s) => a + (s.total_expenses || 0), 0);
+    const totalFees  = subList.reduce((a, s) => a + (s.total_fee || 0), 0);
+    const grandTotal = totalSpent + totalFees;
+
+    detail.innerHTML = `
+      <div class="detail-header">
+        <div>
+          <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text-bright);">
+            Budget #${b.id}
+            ${b.is_active ? '<span style="background:rgba(61,214,172,0.15);color:var(--success);font-size:12px;padding:2px 10px;border-radius:3px;margin-left:8px;letter-spacing:1px;">ACTIVE</span>' : ''}
+          </div>
+          <div style="color:var(--text-dim);font-size:12px;margin-top:4px;">
+            Opened: ${b.opened_at.slice(0,10)}
+            ${b.closed_at ? ' · Closed: ' + b.closed_at.slice(0,10) : ''}
+            ${b.notes ? ' · ' + esc(b.notes) : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <a href="${API.export_sheet}?budget_id=${budgetId}" class="btn btn-delivery" download style="font-size:13px;">📊 Export Sheet</a>
+          <a href="${API.export}?budget_id=${budgetId}" class="btn btn-primary" download>⬇ Export ZIP</a>
+        </div>
+      </div>
+      <div class="detail-stats">
+        <div class="detail-stat"><div class="stat-label">Initial Budget</div><div class="stat-value">${fmt(b.initial_amount)}</div></div>
+        <div class="detail-stat"><div class="stat-label">Tolls Spent</div><div class="stat-value negative">${fmt(totalSpent)}</div></div>
+        <div class="detail-stat"><div class="stat-label">Service Fees Spent</div><div class="stat-value negative">${fmt(totalFees)}</div></div>
+        <div class="detail-stat"><div class="stat-label">Total Expenses</div><div class="stat-value negative">${fmt(grandTotal)}</div></div>
+        <div class="detail-stat"><div class="stat-label">Remaining</div><div class="stat-value ${b.remaining <= 0 ? 'negative' : 'positive'}">${fmt(b.remaining)}</div></div>
+      </div>
+      <div id="subs-container">
+        ${subList.length === 0
+          ? `<div class="empty-state" style="padding:40px;"><div class="empty-text">No submissions yet</div></div>`
+          : subList.map(s => buildSheet(s, entriesBySubId[s.id] || [])).join('')}
+      </div>`;
+
+  } catch (err) {
+    detail.innerHTML = `<div class="empty-state" style="min-height:400px;"><div class="empty-text" style="color:var(--danger);">Error: ${err.message}</div></div>`;
+  }
+}
+
+// ── Sheet (history detail view) ────────────────────────────────────────────
+function buildSheet(s, entries) {
+  const sid = s.id;
+  sheetCache[sid] = entries.map(e => ({...e}));
+
+  const rows = entries.map((e, i) => buildSheetRow(sid, e, i, false)).join('');
+  const tots = calcTotals(entries);
+
+  return `
+    <div id="sub-sheet-${sid}">
+      <div class="sub-sheet-header" onclick="toggleSheet(${sid})">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="sheet-chev" id="chev-${sid}">▼</span>
+          <span class="type-chip chip-${s.type}">${s.type}</span>
+          <span style="font-family:var(--font-mono);font-size:13px;color:var(--text-bright);">${s.date}</span>
+          <span style="color:var(--text-dim);font-size:12px;">${entries.length} entries · ${s.submitted_at.slice(11,16)}</span>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);">
+          Fee <span style="color:var(--accent2);">${fmt(s.total_fee)}</span>
+          &nbsp;· Toll ${fmt(s.total_toll)}
+          &nbsp;· Total Exp <span style="color:var(--danger);">${fmt((s.total_fee||0)+(s.total_toll||0))}</span>
+          &nbsp;· Budget ${fmt(s.budget_before)} → ${fmt(s.budget_after)}
+        </div>
+      </div>
+
+      <div id="sheet-body-${sid}">
+        <div class="sheet-toolbar">
+          <div class="sheet-totals" id="totals-${sid}">${totalsHtml(tots)}</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="save-status" id="save-status-${sid}"></span>
+            <a href="${API.export_sheet}?id=${sid}" class="btn btn-ghost" download style="font-size:11px;padding:5px 12px;">📊 Export</a>
+            <button class="edit-btn" id="edit-btn-${sid}" onclick="toggleEdit(${sid},event)">✎ Edit</button>
+            <button class="btn btn-danger" style="font-size:11px;padding:5px 12px;" onclick="deleteSubmission(${sid},event)">🗑 Delete</button>
+          </div>
+        </div>
+
+        <div class="sheet-scroll">
+          <table class="sheet-table">
+            <thead><tr>
+              <th style="width:28px;">#</th>
+              <th style="min-width:100px;">Service</th>
+              <th style="min-width:120px;">Driver's Name</th>
+              <th style="min-width:90px;">Vehicle</th>
+              <th style="min-width:130px;">Location</th>
+              <th style="width:80px;">Fee (₱)</th>
+              <th style="width:80px;">Toll In (₱)</th>
+              <th style="width:80px;">Toll Out (₱)</th>
+              <th style="width:56px;">Photo</th>
+            </tr></thead>
+            <tbody id="sheet-tbody-${sid}">${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildSheetRow(sid, e, i, editMode) {
+  const eid = e.id;
+  const cnt = e.photo_count || 0;
+
+  // Build the photo display/control for this row
+  let photoCell;
+  if (!editMode) {
+    // View mode: show thumbnail strip loaded lazily from API
+    if (cnt === 0) {
+      photoCell = `<span style="color:var(--text-dim);font-size:10px;">—</span>`;
+    } else {
+      let thumbs = '';
+      for (let pi = 0; pi < cnt; pi++) {
+        thumbs += `<img src="${API.photo}?id=${eid}&idx=${pi}" class="photo-thumb" onclick="viewPhoto('${API.photo}?id=${eid}&idx=${pi}')" loading="lazy" title="Photo ${pi+1}">`;
+      }
+      photoCell = `<div class="photo-strip" style="flex-wrap:wrap;">${thumbs}</div>`;
+    }
+  } else {
+    // Edit mode: render staged or server photos + add button
+    photoCell = buildEditPhotoCell(sid, eid, cnt);
+  }
+
+  const vehicles = ['Motorcycle','Car','Van','Truck','Bicycle','Other'];
+  const vOpts    = vehicles.map(v => `<option${e.vehicle===v?' selected':''}>${v}</option>`).join('');
+
+  if (!editMode) {
+    return `
+      <tr id="srow-${sid}-${eid}">
+        <td><div class="sheet-static">${i+1}</div></td>
+        <td><div class="sheet-static bright">${esc(e.service)||'—'}</div></td>
+        <td><div class="sheet-static bright">${esc(e.name)||'—'}</div></td>
+        <td><div class="sheet-static bright">${esc(e.vehicle)||'—'}</div></td>
+        <td><div class="sheet-static bright">${esc(e.loc)||'—'}</div></td>
+        <td><div class="sheet-static accent2">${fmt(e.fee)}</div></td>
+        <td><div class="sheet-static num">${fmt(e.toll_entry)}</div></td>
+        <td><div class="sheet-static num">${fmt(e.toll_back)}</div></td>
+        <td style="padding:4px 8px;">${photoCell}</td>
+      </tr>`;
+  }
+
+  return `
+    <tr id="srow-${sid}-${eid}" class="row-dirty">
+      <td><div class="sheet-static">${i+1}</div></td>
+      <td><input class="sheet-cell" value="${esc(e.service)}" oninput="cellChange(${sid},${eid},'service',this.value)"></td>
+      <td><input class="sheet-cell" value="${esc(e.name)}"    oninput="cellChange(${sid},${eid},'name',this.value)"></td>
+      <td><select class="sheet-cell" style="width:100%;appearance:auto;" onchange="cellChange(${sid},${eid},'vehicle',this.value)">${vOpts}</select></td>
+      <td><input class="sheet-cell" value="${esc(e.loc)}"     oninput="cellChange(${sid},${eid},'loc',this.value)"></td>
+      <td><input class="sheet-cell num" type="number" step="0.01" value="${e.fee}"        oninput="cellChange(${sid},${eid},'fee',+this.value);liveSheetTotals(${sid})"></td>
+      <td><input class="sheet-cell num" type="number" step="0.01" value="${e.toll_entry}" oninput="cellChange(${sid},${eid},'toll_entry',+this.value);liveSheetTotals(${sid})"></td>
+      <td><input class="sheet-cell num" type="number" step="0.01" value="${e.toll_back}"  oninput="cellChange(${sid},${eid},'toll_back',+this.value);liveSheetTotals(${sid})"></td>
+      <td style="padding:4px 6px;" id="photo-edit-cell-${sid}-${eid}">${photoCell}</td>
+    </tr>`;
+}
+
+function toggleSheet(sid) {
+  const body = document.getElementById(`sheet-body-${sid}`);
+  const chev = document.getElementById(`chev-${sid}`);
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (chev) chev.style.transform = open ? 'rotate(-90deg)' : '';
+}
+
+// ── Edit mode ──────────────────────────────────────────────────────────────
+function toggleEdit(sid, evt) {
+  evt?.stopPropagation();
+  sheetEditing[sid] ? saveEdits(sid) : enterEditMode(sid);
+}
+
+function enterEditMode(sid) {
+  sheetEditing[sid] = true;
+  const btn = document.getElementById(`edit-btn-${sid}`);
+  if (btn) { btn.classList.add('active'); btn.textContent = '💾 Save All'; }
+  const entries = sheetCache[sid] || [];
+  const tbody   = document.getElementById(`sheet-tbody-${sid}`);
+  if (tbody) tbody.innerHTML = entries.map((e,i) => buildSheetRow(sid, e, i, true)).join('');
+}
+
+function cellChange(sid, eid, field, val) {
+  const entry = (sheetCache[sid] || []).find(e => e.id === eid);
+  if (entry) entry[field] = val;
+}
+
+function liveSheetTotals(sid) {
+  const el = document.getElementById(`totals-${sid}`);
+  if (el) el.innerHTML = totalsHtml(calcTotals(sheetCache[sid] || []));
+}
+
+// ── Multi-photo helpers for saved sheet edit mode ─────────────────────────
+
+function buildEditPhotoCell(sid, eid, serverCount) {
+  // stagedPhotos[key] is an object: { add: [base64,...], keepCount: N, removes: Set }
+  const key = `${sid}-${eid}`;
+  if (!stagedPhotos[key]) {
+    stagedPhotos[key] = { add: [], keepCount: serverCount, removes: new Set() };
+  }
+  const staged = stagedPhotos[key];
+  let html = `<div class="photo-strip" style="flex-wrap:wrap;" id="edit-strip-${sid}-${eid}">`;
+
+  // Existing server photos (kept unless removed)
+  for (let i = 0; i < serverCount; i++) {
+    if (staged.removes.has(i)) continue;
+    html += `<div class="photo-thumb-wrap">
+      <img src="${API.photo}?id=${eid}&idx=${i}" class="photo-thumb" onclick="viewPhoto('${API.photo}?id=${eid}&idx=${i}')" loading="lazy" title="Photo ${i+1}">
+      <button class="photo-del-btn" onclick="removeServerPhoto(${sid},${eid},${i})" title="Remove">✕</button>
+    </div>`;
+  }
+
+  // Newly staged (added) photos
+  staged.add.forEach((src, i) => {
+    html += `<div class="photo-thumb-wrap">
+      <img src="${src}" class="photo-thumb" onclick="viewPhoto('${src}')" title="New photo ${i+1}">
+      <button class="photo-del-btn" onclick="removeStagedPhoto(${sid},${eid},${i})" title="Remove">✕</button>
+    </div>`;
+  });
+
+  // Add button
+  html += `<label class="photo-add-btn" title="Add more photos">
+    📷<input type="file" accept="image/*" multiple onchange="addStagedPhotos(${sid},${eid},this)">
+  </label></div>`;
+  return html;
+}
+
+function refreshEditPhotoCell(sid, eid) {
+  const cell = document.getElementById(`photo-edit-cell-${sid}-${eid}`);
+  if (!cell) return;
+  const entry = (sheetCache[sid]||[]).find(e => e.id === eid);
+  const serverCount = entry ? (entry.photo_count || 0) : 0;
+  cell.innerHTML = buildEditPhotoCell(sid, eid, serverCount);
+}
+
+function removeServerPhoto(sid, eid, idx) {
+  const key = `${sid}-${eid}`;
+  if (!stagedPhotos[key]) return;
+  stagedPhotos[key].removes.add(idx);
+  markEntryPhotoDirty(sid, eid);
+  refreshEditPhotoCell(sid, eid);
+}
+
+function removeStagedPhoto(sid, eid, idx) {
+  const key = `${sid}-${eid}`;
+  if (!stagedPhotos[key]) return;
+  stagedPhotos[key].add.splice(idx, 1);
+  markEntryPhotoDirty(sid, eid);
+  refreshEditPhotoCell(sid, eid);
+}
+
+function addStagedPhotos(sid, eid, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const key = `${sid}-${eid}`;
+  if (!stagedPhotos[key]) {
+    const entry = (sheetCache[sid]||[]).find(e => e.id === eid);
+    stagedPhotos[key] = { add: [], keepCount: entry ? (entry.photo_count||0) : 0, removes: new Set() };
+  }
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      stagedPhotos[key].add.push(ev.target.result);
+      markEntryPhotoDirty(sid, eid);
+      refreshEditPhotoCell(sid, eid);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function markEntryPhotoDirty(sid, eid) {
+  const entry = (sheetCache[sid]||[]).find(e => e.id === eid);
+  if (entry) entry._photoDirty = true;
+}
+
+async function saveEdits(sid) {
+  const entries = sheetCache[sid] || [];
+  const btn     = document.getElementById(`edit-btn-${sid}`);
+  const status  = document.getElementById(`save-status-${sid}`);
+
+  if (btn)    { btn.disabled = true; btn.textContent = '⏳ Saving…'; }
+  if (status) { status.textContent = `Saving ${entries.length} rows…`; status.className = 'save-status saving'; }
+
+  let saved = 0, errors = 0;
+
+  for (const e of entries) {
+    try {
+      const payload = {
+        id:         e.id,
+        service:    e.service    || '',
+        name:       e.name       || '',
+        vehicle:    e.vehicle    || '',
+        loc:        e.loc        || '',
+        fee:        Number(e.fee)        || 0,
+        toll_entry: Number(e.toll_entry) || 0,
+        toll_back:  Number(e.toll_back)  || 0,
+      };
+      const key = `${sid}-${e.id}`;
+      if (stagedPhotos[key]) {
+        const s = stagedPhotos[key];
+        // Build photos array: '__keep__' for each server photo that was NOT removed, then new ones
+        const photos = [];
+        for (let i = 0; i < s.keepCount; i++) {
+          if (!s.removes.has(i)) photos.push('__keep__');
+          else photos.push(null); // placeholder so index is preserved on backend... actually just skip it
+        }
+        // Clean out nulls — backend rebuild from remaining keeps + new
+        const keeps = Array.from({ length: s.keepCount }, (_, i) => s.removes.has(i) ? null : '__keep__').filter(Boolean);
+        payload.photos = [...keeps, ...s.add];
+        delete stagedPhotos[key];
+      } else {
+        payload.photos = undefined; // no photo changes
+      }
+      await apiFetch(API.update_entry, { method: 'POST', body: JSON.stringify(payload) });
+      e._photoDirty = false;
+      saved++;
+    } catch {
+      errors++;
+    }
+  }
+
+  if (btn) btn.disabled = false;
+
+  if (errors > 0) {
+    if (status) { status.textContent = `${errors} row(s) failed`; status.className = 'save-status'; }
+    if (btn)    { btn.classList.add('active'); btn.textContent = '💾 Save All'; }
+    toast(`${errors} row(s) failed to save`, 'error');
+    return;
+  }
+
+  sheetEditing[sid] = false;
+  if (btn)    { btn.classList.remove('active'); btn.textContent = '✎ Edit'; }
+  if (status) {
+    status.textContent = `✓ ${saved} saved`;
+    status.className   = 'save-status saved';
+    setTimeout(() => { status.textContent = ''; status.className = 'save-status'; }, 3000);
+  }
+
+  const tbody = document.getElementById(`sheet-tbody-${sid}`);
+  if (tbody) tbody.innerHTML = entries.map((e,i) => buildSheetRow(sid, e, i, false)).join('');
+
+  liveSheetTotals(sid);
+  await loadActiveBudget();
+  toast(`${saved} row(s) saved`, 'success');
+}
+
+// ── Delete submission ──────────────────────────────────────────────────────
+async function deleteSubmission(sid, evt) {
+  evt?.stopPropagation();
+  if (!confirm('Delete this submission? Expenses will be refunded to the budget.')) return;
+  try {
+    await apiFetch(`${API.submissions}?id=${sid}`, { method: 'DELETE' });
+    document.getElementById(`sub-sheet-${sid}`)?.remove();
+    delete sheetCache[sid];
+    await loadActiveBudget();
+    toast('Submission deleted and budget refunded.', 'success');
+    loadHistory();
+  } catch (err) {
+    toast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+// ── Sheet helpers ─────────────────────────────────────────────────────────-
+function calcTotals(entries) {
+  let fee = 0, toll = 0;
+  entries.forEach(e => {
+    fee  += Number(e.fee)        || 0;
+    toll += Number(e.toll_entry) || 0;
+    toll += Number(e.toll_back)  || 0;
+  });
+  return { fee, toll, count: entries.length };
+}
+
+function totalsHtml(t) {
+  return `
+    <div class="sheet-total-item">
+      <span class="sheet-total-label">Service Fees</span>
+      <span class="sheet-total-value">${fmt(t.fee)}</span>
+    </div>
+    <div class="sheet-total-item">
+      <span class="sheet-total-label">Tolls</span>
+      <span class="sheet-total-value">${fmt(t.toll)}</span>
+    </div>
+    <div class="sheet-total-item">
+      <span class="sheet-total-label">Total Expenses</span>
+      <span class="sheet-total-value" style="color:var(--danger);">${fmt(t.fee + t.toll)}</span>
+    </div>
+    <div class="sheet-total-item">
+      <span class="sheet-total-label">Entries</span>
+      <span class="sheet-total-value">${t.count}</span>
+    </div>`;
+}
+
+// ── Photo viewer ───────────────────────────────────────────────────────────
+function viewPhoto(src) {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  ov.innerHTML = `<img src="${src}" style="max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 0 80px rgba(0,0,0,0.8);">`;
+  ov.onclick = () => ov.remove();
+  document.body.appendChild(ov);
+}
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeSubmitModal(); closeBudgetModal(); }
+});
+</script>
+</body>
+</html>

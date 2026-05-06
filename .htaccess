@@ -1,0 +1,14 @@
+# Serve accounting.html as the directory index
+DirectoryIndex accounting.html index.php index.html
+
+# Redirect any direct requests to index.html to accounting.html
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_URI} ^/index\.html$
+  RewriteRule ^index\.html$ /accounting.html [R=301,L]
+</IfModule>
+
+# Basic protections
+<FilesMatch "\.(sql|env|ini|log)$">
+  Deny from all
+</FilesMatch>
