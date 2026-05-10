@@ -22,6 +22,7 @@ Internal tool for tracking delivery and retrieval expenses for borrowed company 
 6. [Expense Logic](#expense-logic)
 7. [Export Format](#export-format)
 8. [Configuration](#configuration)
+9. [User Manual](#user-manual)
 
 ---
 
@@ -358,3 +359,141 @@ To deploy:
 3. Set `PRODUCTION` to `true`.
 4. Point your web server root at the folder containing `accounting.html`.
 5. Ensure `api/` is accessible at `/api/`.
+
+---
+
+## User Manual
+
+This section is for day-to-day staff who use the app to log deliveries and retrievals. No technical knowledge required.
+
+---
+
+### Getting Started
+
+Open `accounting.html` in your browser. You will see three tabs at the top: **Delivery**, **Retrieval**, and **History**.
+
+Before you can log anything, an active budget must be open. If the budget bar at the top shows **"No active budget"**, ask your administrator to open one.
+
+---
+
+### Understanding the Budget Bar
+
+At the top of both the Delivery and Retrieval tabs, a budget bar shows a live summary of the current batch before you submit:
+
+| Field | What it means |
+|---|---|
+| **Budget Remaining** | How much money is left in the active budget right now |
+| **Tolls (this batch)** | Total toll costs entered in the current table |
+| **Fees (this batch)** | Total service fees entered in the current table |
+| **Total Expenses** | Fees + Tolls combined — what will be deducted on submit |
+| **Budget After Submit** | What the balance will be if you submit this batch now |
+
+The **Budget After Submit** turns **red** if the batch would deplete the budget. You can still submit, but the budget will automatically close afterwards.
+
+---
+
+### Logging a Delivery
+
+1. Click the **Delivery** tab.
+2. Click **+ Add Row** for each rider or package in the batch.
+3. Fill in each row:
+
+| Field | What to enter |
+|---|---|
+| **Service** | The delivery service used — e.g. GrabExpress, LBC, J&T, Lalamove |
+| **Name** | The driver's name or the recipient's name |
+| **Vehicle** | Plate number or vehicle description |
+| **Location** | Pickup or drop-off address |
+| **Date** | Date of the delivery (defaults to today) |
+| **Fee (₱)** | Amount paid to the delivery service |
+| **Toll In (₱)** | Toll paid on the way to the destination |
+| **Toll Back (₱)** | Toll paid on the return trip |
+| **Photo** | Optional — tap the camera icon to attach a photo of the receipt or package |
+
+4. To remove a row, click the **✕** button on the right side of that row.
+5. When all entries are filled, click **Submit Delivery**.
+
+---
+
+### Logging a Retrieval
+
+The process is identical to Delivery. Click the **Retrieval** tab and follow the same steps. Retrieval entries are kept separate from Delivery entries in all reports and history views.
+
+---
+
+### Submitting a Batch
+
+When you click **Submit Delivery** or **Submit Retrieval**, a confirmation window appears showing:
+
+- Number of entries
+- Current budget balance
+- Service Fees and Tolls for this batch
+- Total Expenses (what will be deducted)
+- Budget balance after submission
+
+Review the summary, then click **Confirm** to save. The table clears and the budget bar updates immediately.
+
+> If a required field is missing, the submission will be blocked and the row with the missing data will be highlighted.
+
+---
+
+### Attaching Photos
+
+Each row has a **📷** button. Click it to:
+
+- Take a photo (on mobile)
+- Upload an image from your device
+
+You can attach multiple photos per entry. A badge on the button shows how many photos are attached. Photos are saved together with the entry and can be viewed or downloaded later from the History tab.
+
+---
+
+### Viewing History
+
+Click the **History** tab to see all past budgets.
+
+Each budget in the left panel shows its label, date range, and remaining balance. Click a budget to expand its detail view on the right, which shows:
+
+- **Summary stats** — Initial Budget, Tolls Spent, Service Fees Spent, Total Expenses, Remaining balance.
+- **Each submission** as a collapsible row. Click a submission header to expand it and see the full entry table.
+- Inside each expanded submission, a **totals bar** shows the Service Fees, Tolls, Total Expenses, and number of entries for that batch.
+
+---
+
+### Editing a Past Entry
+
+In the History tab, expand a submission and click any cell in the entry table to edit it directly. Changed cells are highlighted. When you're done editing, click the **Save** button (or press Enter) to save the change. The submission totals and budget balance update automatically.
+
+---
+
+### Exporting Records
+
+In the History tab, each budget has an **⬇ Export ZIP** button. Clicking it downloads a `.zip` file containing:
+
+- **report.xlsx** — a full Excel spreadsheet with a summary sheet and one sheet per submission, with colour-coded rows (orange for retrieval, green for delivery).
+- **drivers/** folder — all attached photos organised by driver name.
+
+Use this for filing, auditing, or sharing records with management.
+
+---
+
+### Tips and Common Questions
+
+**Can I submit without filling every field?**
+Service, Name, and Location are the minimum required fields. Fee and Toll fields default to ₱0.00 if left blank.
+
+**What if I added a row by mistake?**
+Click the **✕** button on that row before submitting. Rows cannot be deleted after submission, but they can be edited to zero out the amounts.
+
+**The Budget After Submit is showing red — what do I do?**
+It means this batch will use up the remaining budget. You can still submit, but the budget will close automatically. Coordinate with your administrator to open a new budget if more transactions are expected.
+
+**The budget bar says "No active budget."**
+No submissions can be made until a budget is opened. Contact your administrator.
+
+**Can I submit to a closed budget?**
+No. Closed budgets are read-only and visible only in the History tab.
+
+**Where are the photos stored?**
+Photos are stored securely in the database (or on the server, depending on configuration). They are only accessible through the app or the ZIP export.
+
